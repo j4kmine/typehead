@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:flutter_typeahead_demo/state_servies.dart';
 
+import 'api/user_api.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -30,6 +32,7 @@ class QuickSearchScreen extends StatefulWidget {
 
 class _QuickSearchScreenState extends State<QuickSearchScreen> {
   String? userSelected;
+  final TextEditingController mycontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -43,80 +46,40 @@ class _QuickSearchScreenState extends State<QuickSearchScreen> {
             child: SizedBox(
                 height: 40,
                 width: double.infinity,
-                child: TypeAheadField(
-                  noItemsFoundBuilder: (context) => const SizedBox(
-                    height: 50,
-                    child: Center(
-                      child: Text('No Item Found'),
+                child: TypeAheadField<User?>(
+                  hideSuggestionsOnKeyboardHide: false,
+                  textFieldConfiguration: TextFieldConfiguration(
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      border: OutlineInputBorder(),
+                      hintText: 'Search Username',
                     ),
                   ),
-                  suggestionsBoxDecoration: const SuggestionsBoxDecoration(
-                      color: Colors.white,
-                      elevation: 4.0,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(10),
-                        bottomRight: Radius.circular(10),
-                      )),
-                  debounceDuration: const Duration(milliseconds: 400),
-                  textFieldConfiguration: TextFieldConfiguration(
-                      decoration: InputDecoration(
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(
-                            15.0,
-                          )),
-                          enabledBorder: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(15.0),
-                              ),
-                              borderSide: BorderSide(color: Colors.black)),
-                          hintText: "Search",
-                          contentPadding:
-                              const EdgeInsets.only(top: 4, left: 10),
-                          hintStyle:
-                              const TextStyle(color: Colors.grey, fontSize: 14),
-                          suffixIcon: IconButton(
-                              onPressed: () {},
-                              icon:
-                                  const Icon(Icons.search, color: Colors.grey)),
-                          fillColor: Colors.white,
-                          filled: true)),
-                  suggestionsCallback: (value) {
-                    return StateService.getSuggestions(value);
-                  },
-                  itemBuilder: (context, String suggestion) {
-                    return Row(
-                      children: [
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        const Icon(
-                          Icons.refresh,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: Text(
-                              suggestion,
-                              maxLines: 1,
-                              // style: TextStyle(color: Colors.red),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        )
-                      ],
+                  suggestionsCallback: UserApi.getUserSuggestions,
+                  itemBuilder: (context, User? suggestion) {
+                    final user = suggestion!;
+
+                    return ListTile(
+                      title: Text(user.name),
                     );
                   },
-                  onSuggestionSelected: (String suggestion) {
-                    setState(() {
-                      userSelected = suggestion;
-                    });
+                  noItemsFoundBuilder: (context) => Container(
+                    height: 100,
+                    child: Center(
+                      child: Text(
+                        'No Users Found.',
+                        style: TextStyle(fontSize: 24),
+                      ),
+                    ),
+                  ),
+                  onSuggestionSelected: (User? suggestion) {
+                    final user = suggestion!;
+
+                    ScaffoldMessenger.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        content: Text('Selected user: ${user.name}'),
+                      ));
                   },
                 )),
           ),

@@ -38,7 +38,12 @@ class StateService {
     'TELANGANA',
     'LADAKH'
   ];
-
+  static List<String> getSuggestionsApi(String query) {
+    List<String> matches = [];
+    matches.addAll(states);
+    matches.retainWhere((s) => s.toLowerCase().contains(query.toLowerCase()));
+    return matches;
+  }
   static List<String> getSuggestions(String query) {
     List<String> matches = [];
     matches.addAll(states);
